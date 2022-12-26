@@ -35,9 +35,6 @@ def loadData(catalog):
     loadAlbums(catalog)
     loadTracks(catalog)
 
-    # return catalog
-    # print(catalog)
-
 
 def loadArtists(catalog):
     """
@@ -48,7 +45,7 @@ def loadArtists(catalog):
 
     for artist in file:
         catalog = model.addArtist(catalog, artist)
-        break
+        # break
 
 
 def loadAlbums(catalog):
@@ -60,7 +57,7 @@ def loadAlbums(catalog):
 
     for album in file:
         catalog = model.addAlbum(catalog, album)
-        break
+        # break
 
 
 def loadTracks(catalog):
@@ -72,12 +69,43 @@ def loadTracks(catalog):
 
     for track in file:
         catalog = model.addTrack(catalog, track)
-        break
-
-
-loadData(catalog=model.newCatalog())
+        # break
 
 
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+
+def getSize(list):
+    """
+    Get the number of elements in a list
+    """
+    return model.getSize(list)
+
+
+def getElement(list, pos):
+    """
+    Get the element of the position in a list
+    """
+    return model.getElement(list, pos)
+
+
+def getNFirstElements(list, n):
+    """
+    Given a list get the first n elements
+    """
+    return model.getNFirstElements(list, n)
+
+
+def getNLastElements(list, n):
+    """
+    Given a list get the last n elements    
+    """
+    return model.getNLastElements(list, n)
+
+
+def getAlbumsBetween(catalog, year_init, year_end):
+    """
+    Given an initial year and a final year return the list of albums released between
+    """
+    return model.getAlbumsBetween(catalog, year_init, year_end)

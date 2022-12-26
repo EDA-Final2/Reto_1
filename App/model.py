@@ -1,4 +1,5 @@
-﻿import config as cf
+﻿from datetime import datetime
+import config as cf
 from DISClib.ADT import list as lt
 from DISClib.Algorithms.Sorting import shellsort as sa
 assert cf
@@ -46,8 +47,6 @@ def addArtist(catalog, artist):
 
     artist = newArtist(id, track_id, artist_popularity,
                        genres, name, followers)
-    # artist = Artist(id, track_id, artist_popularity, genres, name, followers)
-    # print(artist)
 
     artists = catalog["artists"]
     lt.addLast(artists, artist)
@@ -68,7 +67,21 @@ def addAlbum(catalog, album):
         "[", "").replace("]", "").replace("'", "").split(", ")
     artist_id = album["artist_id"]
     images = album["images"]
-    release_date = album["release_date"]
+
+    # https://www.digitalocean.com/community/tutorials/python-string-to-datetime-strptime
+    # https://www.ibm.com/docs/en/cmofz/10.1.0?topic=SSQHWE_10.1.0/com.ibm.ondemand.mp.doc/arsa0257.htm
+    date = album["release_date"]
+    if len(date) == 4:
+        format = "%Y"
+    elif len(date) == 6:
+        format = "%b-%y"
+    else:
+        if date[4] == "/":
+            format = "%Y/%m/%d"
+        else:
+            format = "%Y-%m-%d"
+    release_date = datetime.strptime(date, format).year
+
     name = album["name"]
     release_date_precision = album["release_date_precision"]
 
@@ -242,6 +255,108 @@ class Track:
 
 # Funciones de consulta
 
+def getSize(list):
+    """
+    Get the number of elements in a list
+    """
+    return lt.size(list)
+
+
+def getElement(list, pos):
+    """
+    Get the element of the position in a list
+    """
+    return lt.getElement(list, pos)
+
+
+def getNFirstElements(list, n):
+    """
+    Given a list get the first n elements
+    """
+    return lt.subList(list, 1, n)
+
+
+def getNLastElements(list, n):
+    """
+    Given a list get the last n elements
+    """
+    return lt.subList(list, lt.size(list)-n+1, n)
+
+
+def getAlbumsBetween(catalog, year_init, year_end):
+    """
+    Given an initial year and a final year return the list of albums released between
+    """
+    albums = catalog["albums"]
+    albums_sorted = sortAlbumsByYear(albums)
+
+    size = lt.size(albums_sorted)
+
+    def binarySearchYearInf(list, target):
+        size = lt.size(list)
+        low = 1
+        high = lt.size(list)
+
+        res = 1
+
+        while low <= high:
+            mid = (low + high) // 2
+
+            element_year = lt.getElement(list, mid)["release_date"]
+
+            if element_year < target:
+                low = mid + 1
+            elif element_year > target:
+                high = mid - 1
+            else:
+                res = mid
+                high = mid - 1
+        return res
+
+    def binarySearchYearSup(list, target):
+        size = lt.size(list)
+        low = 1
+        high = lt.size(list)
+
+        res = size
+
+        while low <= high:
+            mid = (low + high) // 2
+
+            element_year = lt.getElement(list, mid)["release_date"]
+
+            if element_year < target:
+                low = mid + 1
+            elif element_year > target:
+                high = mid - 1
+            else:
+                res = mid
+                low = mid + 1
+
+        return res
+
+    pos_ini = binarySearchYearInf(albums_sorted, year_init)
+    pos_fin = binarySearchYearSup(albums_sorted, year_end)
+
+    albums_between = lt.subList(albums_sorted, pos_ini, pos_fin-pos_ini+1)
+
+    return albums_between
+    return pos_ini, pos_fin
+
+
 # Funciones utilizadas para comparar elementos dentro de una lista
 
+def cmpAlbumsByYear(album1, album2):
+    if album1["release_date"] < album2["release_date"]:
+        return True
+    else:
+        return False
+
+
 # Funciones de ordenamiento
+
+def sortAlbumsByYear(albums):
+    albums_to_sort = lt.subList(albums, 1, lt.size(albums))
+    albums_sorted = sa.sort(albums_to_sort, cmpAlbumsByYear)
+
+    return albums_sorted
