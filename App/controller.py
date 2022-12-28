@@ -36,6 +36,7 @@ def loadData(catalog):
     loadTracks(catalog)
 
     sortAlbumsByYear(catalog)
+    sortArtistsByPopularity(catalog)
 
 
 def loadArtists(catalog):
@@ -79,6 +80,12 @@ def sortAlbumsByYear(catalog):
     albums_sorted = model.sortAlbumsByYear(albums)
     catalog["albumsSorted"] = albums_sorted
 
+
+def sortArtistsByPopularity(catalog):
+    artists = catalog["artists"]
+    artists_sorted = model.sortArtistsByPopularity(artists)
+    catalog["artistsSorted"] = artists_sorted
+
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
@@ -110,3 +117,17 @@ def getAlbumsBetween(catalog, year_init, year_end):
     Given an initial year and a final year return the list of albums released between
     """
     return model.getAlbumsBetween(catalog, year_init, year_end)
+
+
+def getNFirstElements(list, n):
+    """
+    Get the n first elements in a list
+    """
+    return model.getNFirstElements(list, n)
+
+
+def getTopArtists(catalog, n):
+    """
+    Get the top n of artists by popularity
+    """
+    return model.getTopArtists(catalog, n)

@@ -23,6 +23,7 @@ def printMenu():
     print("\nBienvenido")
     print("1- Cargar información en el catálogo")
     print("2- Albumes en un periodo de tiempo")
+    print("3- Top de Artistas por Popularidad")
 
 # Functions to show answers
 
@@ -31,7 +32,6 @@ def printUploadData(catalog):
     """
     Print information of the upload of the data
     """
-
     artists = catalog["artists"]
     albums = catalog["albumsSorted"]
     tracks = catalog["tracks"]
@@ -94,7 +94,7 @@ def printAlbumsBetween(albums_between, year_init, year_end):
 
     first_last_albums = []
 
-    if albums_between_size < 7:
+    if albums_between_size < 6:
         for i in range(1, albums_between_size+1):
             album = controller.getElement(albums_between, i)
 
@@ -145,6 +145,63 @@ def printAlbumsBetween(albums_between, year_init, year_end):
         print(albums_between_df.to_markdown(index=False))
 
 
+def printTopArtists(catalog, top_artists, n):
+    """
+    Print the top n artists by popularity
+    """
+    top_artists_size = controller.getSize(top_artists)
+
+    first_last_artists = []
+
+    if top_artists_size < 6:
+        for i in range(1, top_artists_size+1):
+            artist = controller.getElement(top_artists, i)
+
+            track_id = artist["track_id"]
+            tracksHash = catalog["tracksHash"]
+
+            track = controller.getValueMap(tracksHash, track_id)
+            artist["track_name"] = "Unknown"
+            if track != "Not Found":
+                artist["track_name"] = track["name"]
+
+            first_last_artists.append(artist)
+
+    else:
+        for i in range(1, 4):
+            artist = controller.getElement(top_artists, i)
+
+            track_id = artist["track_id"]
+            tracksHash = catalog["tracksHash"]
+
+            track = controller.getValueMap(tracksHash, track_id)
+            artist["track_name"] = "Unknown"
+            if track != "Not Found":
+                artist["track_name"] = track["name"]
+
+            first_last_artists.append(artist)
+
+        for i in range(3, 0, -1):
+            artist = controller.getElement(top_artists, top_artists_size-i+1)
+
+            track_id = artist["track_id"]
+            tracksHash = catalog["tracksHash"]
+
+            track = controller.getValueMap(tracksHash, track_id)
+            artist["track_name"] = "Unknown"
+            if track != "Not Found":
+                artist["track_name"] = track["name"]
+
+            first_last_artists.append(artist)
+
+    print(
+        f"\n{top_artists_size} artists on the search of Top {n}\n")
+    if top_artists_size > 0:
+        top_artists_df = pd.DataFrame(first_last_artists)[
+            ["name", "artist_popularity", "followers", "track_name", "genres"]]
+        print(top_artists_df.to_markdown(index=False))
+
+
 catalog = controller.newCatalog()
 
 
@@ -165,20 +222,27 @@ while True:
         printUploadData(catalog)
 
     elif int(inputs[0]) == 2:
-        print("\nReq 1.\n"+"-"*20)
+        print("\nReq 1.\nAlbums on a period\n"+"-"*20)
         year_init = int(input("Initial Year: "))
         year_end = int(input("Final Year: "))
 
         albums_between = controller.getAlbumsBetween(
             catalog, year_init, year_end)
 
-        albums_between_size = controller.getSize(albums_between)
-
         printAlbumsBetween(albums_between, year_init, year_end)
 
     elif int(inputs[0]) == 3:
-        pass
+        print("\nReq 2.\nTop Artists by Popularity\n"+"-"*20)
+        n = int(input("Top N: "))
+
+        artist_size = controller.getSize(catalog["artists"])
+        if n > artist_size:
+            n = artist_size
+
+        top_artists = controller.getTopArtists(catalog, n)
+
+        printTopArtists(catalog, top_artists, n)
 
     else:
-        print("Saliendo de la Aplicación")
+        print("\nSaliendo de la Aplicación")
         break

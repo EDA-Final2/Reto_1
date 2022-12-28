@@ -22,17 +22,27 @@ def newCatalog() -> dict:
         "artists": None,
         "albums": None,
         "tracks": None,
-        "albumsSorted": None,
+
         "artistsHash": None,
+        "albumsHash": None,
+        "tracksHash": None,
+
+        "albumsSorted": None,
+        "artistsSorted": None,
     }
 
     catalog["artists"] = lt.newList("ARRAY_LIST", key="id")
     catalog["albums"] = lt.newList("ARRAY_LIST", key="id")
     catalog["tracks"] = lt.newList("ARRAY_LIST", key="id")
 
-    num_artists = lt.size(catalog["artists"])
     catalog["artistsHash"] = mp.newMap(
-        numelements=num_artists, maptype='PROBING', loadfactor=0.5)
+        numelements=57000, maptype='PROBING', loadfactor=0.5)
+
+    catalog["albumsHash"] = mp.newMap(
+        numelements=76000, maptype="PROBING", loadfactor=0.5)
+
+    catalog["tracksHash"] = mp.newMap(
+        numelements=102000, maptype="PROBING", loadfactor=0.5)
 
     return catalog
 
@@ -102,6 +112,9 @@ def addAlbum(catalog, album):
     albums = catalog["albums"]
     lt.addLast(albums, album)
 
+    albumsHash = catalog["albumsHash"]
+    mp.put(albumsHash, album["id"], album)
+
     return catalog
 
 
@@ -141,12 +154,18 @@ def addTrack(catalog, track):
     tracks = catalog["tracks"]
     lt.addLast(tracks, track)
 
+    tracksHash = catalog["tracksHash"]
+    mp.put(tracksHash, track["id"], track)
+
     return catalog
 
 
 # Funciones para creacion de datos
 
 def newArtist(id, track_id, artist_popularity, genres, name, followers):
+    """
+    Create a new Artist object
+    """
     artist = {
         "id": id,
         "track_id": track_id,
@@ -160,6 +179,9 @@ def newArtist(id, track_id, artist_popularity, genres, name, followers):
 
 
 def newAlbum(id, track_id, total_tracks, external_urls, album_type, available_markets, artist_id, images, release_date, name, release_date_precision):
+    """
+    Create a new Album object
+    """
     album = {
         "id": id,
         "track_id": track_id,
@@ -178,6 +200,9 @@ def newAlbum(id, track_id, total_tracks, external_urls, album_type, available_ma
 
 
 def newTrack(id, href, album_id, key, track_number, artists_id, energy, loudness, valence, danceability, playlist, speechiness, popularity, liveness, tempo, duration_ms, acousticness, available_markets, lyrics, disc_number, instrumentalness, preview_url, name):
+    """
+    Create a new Track object
+    """
     track = {
         "id": id,
         "href": href,
@@ -298,14 +323,16 @@ def getAlbumsBetween(catalog, year_init, year_end):
     Given an initial year and a final year return the list of albums released between
     """
     albums_sorted = catalog["albumsSorted"]
-    # albums_sorted = sortAlbumsByYear(albums)
 
     def binarySearchYearInf(list, target):
+        """
+        Binary Search of a value having duplicates, searching the lower
+        """
         size = lt.size(list)
         low = 1
         high = size
 
-        res = 0
+        res = size
         while low <= high:
             mid = (low + high) // 2
 
@@ -325,6 +352,9 @@ def getAlbumsBetween(catalog, year_init, year_end):
         return res
 
     def binarySearchYearSup(list, target):
+        """
+        Binary Search of a value having duplicates, searching the higher
+        """
         size = lt.size(list)
         low = 1
         high = size
@@ -357,20 +387,71 @@ def getAlbumsBetween(catalog, year_init, year_end):
     return albums_between
 
 
+def getNFirstElements(list, n):
+    """
+    Get the n first elements in a list
+    """
+    return lt.subList(list, 1, n)
+
+
+def getTopArtists(catalog, n):
+    """
+    Get the top n of artists by popularity
+    """
+    artists_sorted = catalog["artistsSorted"]
+
+    return getNFirstElements(artists_sorted, n)
+
+
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 def cmpAlbumsByYear(album1, album2):
+    """
+    Compare function of albums to be sorted by year
+    """
     if album1["release_date"] < album2["release_date"]:
         return True
     else:
         return False
 
 
+def cmpArtistsByPopularity(artist1, artist2):
+    """
+    Compare function of artists to be sorted by Popularity, Followers, Name
+    """
+    if artist1["artist_popularity"] > artist2["artist_popularity"]:
+        return True
+    elif artist1["artist_popularity"] < artist2["artist_popularity"]:
+        return False
+    else:
+        if artist1["followers"] > artist2["followers"]:
+            return True
+        elif artist1["followers"] < artist2["followers"]:
+            return False
+        else:
+            if artist1["name"] < artist2["name"]:
+                return True
+            else:
+                return False
+
+
 # Funciones de ordenamiento
 
 def sortAlbumsByYear(albums):
+    """
+    Sort the albums by Year
+    """
     albums_to_sort = lt.subList(albums, 1, lt.size(albums))
     albums_sorted = sa.sort(albums_to_sort, cmpAlbumsByYear)
-    # print(lt.size(albums), lt.size(albums_sorted))
 
     return albums_sorted
+
+
+def sortArtistsByPopularity(artists):
+    """
+    Sort the artists by Popularity, Followers, Name
+    """
+    artists_to_sort = lt.subList(artists, 1, lt.size(artists))
+    artists_sorted = sa.sort(artists_to_sort, cmpArtistsByPopularity)
+
+    return artists_sorted
