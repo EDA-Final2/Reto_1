@@ -35,6 +35,8 @@ def loadData(catalog):
     loadAlbums(catalog)
     loadTracks(catalog)
 
+    sortAlbumsByYear(catalog)
+
 
 def loadArtists(catalog):
     """
@@ -72,9 +74,15 @@ def loadTracks(catalog):
         # break
 
 
+def sortAlbumsByYear(catalog):
+    albums = catalog["albums"]
+    albums_sorted = model.sortAlbumsByYear(albums)
+    catalog["albumsSorted"] = albums_sorted
+
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+
 
 def getSize(list):
     """
@@ -90,18 +98,11 @@ def getElement(list, pos):
     return model.getElement(list, pos)
 
 
-def getNFirstElements(list, n):
+def getValueMap(map, key):
     """
-    Given a list get the first n elements
+    Get the value of a key in a map
     """
-    return model.getNFirstElements(list, n)
-
-
-def getNLastElements(list, n):
-    """
-    Given a list get the last n elements    
-    """
-    return model.getNLastElements(list, n)
+    return model.getValueMap(map, key)
 
 
 def getAlbumsBetween(catalog, year_init, year_end):

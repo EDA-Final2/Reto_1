@@ -1,6 +1,7 @@
 ﻿from datetime import datetime
 import config as cf
 from DISClib.ADT import list as lt
+from DISClib.ADT import map as mp
 from DISClib.Algorithms.Sorting import shellsort as sa
 assert cf
 
@@ -21,11 +22,17 @@ def newCatalog() -> dict:
         "artists": None,
         "albums": None,
         "tracks": None,
+        "albumsSorted": None,
+        "artistsHash": None,
     }
 
     catalog["artists"] = lt.newList("ARRAY_LIST", key="id")
     catalog["albums"] = lt.newList("ARRAY_LIST", key="id")
     catalog["tracks"] = lt.newList("ARRAY_LIST", key="id")
+
+    num_artists = lt.size(catalog["artists"])
+    catalog["artistsHash"] = mp.newMap(
+        numelements=num_artists, maptype='PROBING', loadfactor=0.5)
 
     return catalog
 
@@ -51,6 +58,9 @@ def addArtist(catalog, artist):
     artists = catalog["artists"]
     lt.addLast(artists, artist)
 
+    artistsHash = catalog["artistsHash"]
+    mp.put(artistsHash, artist["id"], artist)
+
     return catalog
 
 
@@ -74,7 +84,8 @@ def addAlbum(catalog, album):
     if len(date) == 4:
         format = "%Y"
     elif len(date) == 6:
-        format = "%b-%y"
+        date = date[0:4] + "19" + date[-2:]
+        format = "%b-%Y"
     else:
         if date[4] == "/":
             format = "%Y/%m/%d"
@@ -269,63 +280,65 @@ def getElement(list, pos):
     return lt.getElement(list, pos)
 
 
-def getNFirstElements(list, n):
+def getValueMap(map, key):
     """
-    Given a list get the first n elements
+    Get the value of a key in a map
     """
-    return lt.subList(list, 1, n)
+    contains = mp.contains(map, key)
 
+    value = "Not Found"
+    if contains:
+        value = mp.get(map, key)["value"]
 
-def getNLastElements(list, n):
-    """
-    Given a list get the last n elements
-    """
-    return lt.subList(list, lt.size(list)-n+1, n)
+    return value
 
 
 def getAlbumsBetween(catalog, year_init, year_end):
     """
     Given an initial year and a final year return the list of albums released between
     """
-    albums = catalog["albums"]
-    albums_sorted = sortAlbumsByYear(albums)
-
-    size = lt.size(albums_sorted)
+    albums_sorted = catalog["albumsSorted"]
+    # albums_sorted = sortAlbumsByYear(albums)
 
     def binarySearchYearInf(list, target):
         size = lt.size(list)
         low = 1
-        high = lt.size(list)
+        high = size
 
-        res = 1
-
+        res = 0
         while low <= high:
             mid = (low + high) // 2
 
-            element_year = lt.getElement(list, mid)["release_date"]
+            element = lt.getElement(list, mid)
+            element_year = element["release_date"]
+            # print(low, mid, high, element_year, res)
 
             if element_year < target:
                 low = mid + 1
             elif element_year > target:
+                res = mid
                 high = mid - 1
             else:
                 res = mid
                 high = mid - 1
+
         return res
 
     def binarySearchYearSup(list, target):
         size = lt.size(list)
         low = 1
-        high = lt.size(list)
+        high = size
 
-        res = size
-
+        res = 1
         while low <= high:
             mid = (low + high) // 2
 
-            element_year = lt.getElement(list, mid)["release_date"]
+            element = lt.getElement(list, mid)
+            element_year = element["release_date"]
+            # print(low, mid, high, element_year, res)
 
             if element_year < target:
+                res = mid
                 low = mid + 1
             elif element_year > target:
                 high = mid - 1
@@ -338,10 +351,10 @@ def getAlbumsBetween(catalog, year_init, year_end):
     pos_ini = binarySearchYearInf(albums_sorted, year_init)
     pos_fin = binarySearchYearSup(albums_sorted, year_end)
 
+    # print(pos_ini, pos_fin)
     albums_between = lt.subList(albums_sorted, pos_ini, pos_fin-pos_ini+1)
 
     return albums_between
-    return pos_ini, pos_fin
 
 
 # Funciones utilizadas para comparar elementos dentro de una lista
@@ -358,5 +371,6 @@ def cmpAlbumsByYear(album1, album2):
 def sortAlbumsByYear(albums):
     albums_to_sort = lt.subList(albums, 1, lt.size(albums))
     albums_sorted = sa.sort(albums_to_sort, cmpAlbumsByYear)
+    # print(lt.size(albums), lt.size(albums_sorted))
 
     return albums_sorted
