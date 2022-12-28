@@ -29,6 +29,7 @@ def newCatalog() -> dict:
 
         "albumsSorted": None,
         "artistsSorted": None,
+        "tracksSorted": None,
     }
 
     catalog["artists"] = lt.newList("ARRAY_LIST", key="id")
@@ -403,6 +404,15 @@ def getTopArtists(catalog, n):
     return getNFirstElements(artists_sorted, n)
 
 
+def getTopTracks(catalog, n):
+    """
+    Get the top n of artists by popularity
+    """
+    tracks_sorted = catalog["tracksSorted"]
+
+    return getNFirstElements(tracks_sorted, n)
+
+
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 def cmpAlbumsByYear(album1, album2):
@@ -435,6 +445,26 @@ def cmpArtistsByPopularity(artist1, artist2):
                 return False
 
 
+def cmpTracksByPopularity(track1, track2):
+    """
+    Compare function of tow tracks based on Popularity, Duration_ms, Name
+    """
+    if track1["popularity"] > track2["popularity"]:
+        return True
+    elif track1["popularity"] < track2["popularity"]:
+        return False
+    else:
+        if track1["duration_ms"] > track2["duration_ms"]:
+            return True
+        elif track1["duration_ms"] < track2["duration_ms"]:
+            return False
+        else:
+            if track1["name"] < track2["name"]:
+                return True
+            else:
+                return False
+
+
 # Funciones de ordenamiento
 
 def sortAlbumsByYear(albums):
@@ -455,3 +485,13 @@ def sortArtistsByPopularity(artists):
     artists_sorted = sa.sort(artists_to_sort, cmpArtistsByPopularity)
 
     return artists_sorted
+
+
+def sortTracksByPopularity(tracks):
+    """
+    Sort the tracks using the compare function by Popularity, Duration_ms, Name
+    """
+    tracks_to_sort = lt.subList(tracks, 1, lt.size(tracks))
+    tracks_sorted = sa.sort(tracks_to_sort, cmpTracksByPopularity)
+
+    return tracks_sorted

@@ -24,6 +24,7 @@ def printMenu():
     print("1- Cargar información en el catálogo")
     print("2- Albumes en un periodo de tiempo")
     print("3- Top de Artistas por Popularidad")
+    print("4- Top de Canciones por Popularidad")
 
 # Functions to show answers
 
@@ -202,6 +203,103 @@ def printTopArtists(catalog, top_artists, n):
         print(top_artists_df.to_markdown(index=False))
 
 
+def printTopTracks(catalog, top_tracks, n):
+    """
+    Print the top n Tracks by Popularity
+    """
+    top_tracks_size = controller.getSize(top_tracks)
+
+    first_last_tracks = []
+
+    if top_tracks_size < 6:
+        for i in range(1, top_tracks_size+1):
+            track = controller.getElement(top_tracks, i)
+
+            albumsHash = catalog["albumsHash"]
+            album_id = track["album_id"]
+            album = controller.getValueMap(albumsHash, album_id)
+
+            track["album_name"] = "Unknown"
+            if album != "Not Found":
+                track["album_name"] = album["name"]
+
+            artistsHash = catalog["artistsHash"]
+            artists_id = track["artists_id"]
+            artists_name = []
+            for id in artists_id:
+                artist = controller.getValueMap(artistsHash, id)
+
+                artist_name = "Unknown"
+                if artist != "Not Found":
+                    artist_name = artist["name"]
+                    artists_name.append(artist_name)
+
+            track["artists_name"] = artists_name
+
+            first_last_tracks.append(track)
+
+    else:
+        for i in range(1, 4):
+            track = controller.getElement(top_tracks, i)
+
+            albumsHash = catalog["albumsHash"]
+            album_id = track["album_id"]
+            album = controller.getValueMap(albumsHash, album_id)
+
+            track["album_name"] = "Unknown"
+            if album != "Not Found":
+                track["album_name"] = album["name"]
+
+            artistsHash = catalog["artistsHash"]
+            artists_id = track["artists_id"]
+            artists_name = []
+            for id in artists_id:
+                artist = controller.getValueMap(artistsHash, id)
+
+                artist_name = "Unknown"
+                if artist != "Not Found":
+                    artist_name = artist["name"]
+                    artists_name.append(artist_name)
+
+            track["artists_name"] = artists_name
+
+            first_last_tracks.append(track)
+
+        for i in range(3, 0, -1):
+            track = controller.getElement(top_tracks, top_tracks_size-i+1)
+
+            albumsHash = catalog["albumsHash"]
+            album_id = track["album_id"]
+            album = controller.getValueMap(albumsHash, album_id)
+
+            track["album_name"] = "Unknown"
+            if album != "Not Found":
+                track["album_name"] = album["name"]
+
+            artistsHash = catalog["artistsHash"]
+            artists_id = track["artists_id"]
+            artists_name = []
+            for id in artists_id:
+                artist = controller.getValueMap(artistsHash, id)
+
+                artist_name = "Unknown"
+                if artist != "Not Found":
+                    artist_name = artist["name"]
+                    artists_name.append(artist_name)
+
+            track["artists_name"] = artists_name
+
+            first_last_tracks.append(track)
+
+    print(
+        f"\n{top_tracks_size} Tracks on the search of Top {n}\n")
+    if top_tracks_size > 0:
+        top_tracks_df = pd.DataFrame(first_last_tracks)[
+            ["name", "album_name", "artists_name", "popularity", "duration_ms"]]
+        # [            ["name", "artist_popularity", "followers", "track_name", "genres"]]
+        print(top_tracks_df.to_markdown(index=False))
+
+
 catalog = controller.newCatalog()
 
 
@@ -242,6 +340,19 @@ while True:
         top_artists = controller.getTopArtists(catalog, n)
 
         printTopArtists(catalog, top_artists, n)
+
+    elif int(inputs[0]) == 4:
+        print("\nReq 3.\nTop Tracks by Popularity\n"+"-"*20)
+
+        n = int(input("Top N: "))
+
+        tracks_size = controller.getSize(catalog["tracks"])
+        if n > tracks_size:
+            n = tracks_size
+
+        top_tracks = controller.getTopTracks(catalog, n)
+
+        printTopTracks(catalog, top_tracks, n)
 
     else:
         print("\nSaliendo de la Aplicación")

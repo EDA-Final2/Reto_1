@@ -37,13 +37,14 @@ def loadData(catalog):
 
     sortAlbumsByYear(catalog)
     sortArtistsByPopularity(catalog)
+    sortTracksByPopularity(catalog)
 
 
 def loadArtists(catalog):
     """
     Load the Artists in the file
     """
-    filename = cf.data_dir + "Spotify/spotify-artists-utf8-" + "small.csv"
+    filename = cf.data_dir + "Spotify/spotify-artists-utf8-" + "large.csv"
     file = csv.DictReader(open(filename, encoding="utf-8"))
 
     for artist in file:
@@ -55,7 +56,7 @@ def loadAlbums(catalog):
     """
     Load the Albums in the file
     """
-    filename = cf.data_dir + "Spotify/spotify-albums-utf8-" + "small.csv"
+    filename = cf.data_dir + "Spotify/spotify-albums-utf8-" + "large.csv"
     file = csv.DictReader(open(filename, encoding="utf-8"))
 
     for album in file:
@@ -67,7 +68,7 @@ def loadTracks(catalog):
     """
     Load the Tracks in the file
     """
-    filename = cf.data_dir + "Spotify/spotify-tracks-utf8-" + "small.csv"
+    filename = cf.data_dir + "Spotify/spotify-tracks-utf8-" + "large.csv"
     file = csv.DictReader(open(filename, encoding="utf-8"))
 
     for track in file:
@@ -76,15 +77,30 @@ def loadTracks(catalog):
 
 
 def sortAlbumsByYear(catalog):
+    """
+    Sort the Albums
+    """
     albums = catalog["albums"]
     albums_sorted = model.sortAlbumsByYear(albums)
     catalog["albumsSorted"] = albums_sorted
 
 
 def sortArtistsByPopularity(catalog):
+    """
+    Sort the Artists
+    """
     artists = catalog["artists"]
     artists_sorted = model.sortArtistsByPopularity(artists)
     catalog["artistsSorted"] = artists_sorted
+
+
+def sortTracksByPopularity(catalog):
+    """
+    Sort  the Tracks
+    """
+    tracks = catalog["tracks"]
+    tracks_sorted = model.sortTracksByPopularity(tracks)
+    catalog["tracksSorted"] = tracks_sorted
 
 # Funciones de ordenamiento
 
@@ -131,3 +147,10 @@ def getTopArtists(catalog, n):
     Get the top n of artists by popularity
     """
     return model.getTopArtists(catalog, n)
+
+
+def getTopTracks(catalog, n):
+    """
+    Get the top n of tracks by popularity
+    """
+    return model.getTopTracks(catalog, n)
