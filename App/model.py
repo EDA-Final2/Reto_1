@@ -30,6 +30,8 @@ def newCatalog() -> dict:
         "albumsSorted": None,
         "artistsSorted": None,
         "tracksSorted": None,
+        
+        "artistsNameHash": None,
     }
 
     catalog["artists"] = lt.newList("ARRAY_LIST", key="id")
@@ -37,13 +39,20 @@ def newCatalog() -> dict:
     catalog["tracks"] = lt.newList("ARRAY_LIST", key="id")
 
     catalog["artistsHash"] = mp.newMap(
-        numelements=57000, maptype='PROBING', loadfactor=0.5)
-
+        numelements=57000, maptype='CHAINING', loadfactor=2)
     catalog["albumsHash"] = mp.newMap(
-        numelements=76000, maptype="PROBING", loadfactor=0.5)
-
+        numelements=76000, maptype="CHAINING", loadfactor=2)
     catalog["tracksHash"] = mp.newMap(
-        numelements=102000, maptype="PROBING", loadfactor=0.5)
+        numelements=102000, maptype="CHAINING", loadfactor=2)
+
+    catalog["artistsNameHash"] = mp.newMap(
+        numelements=57000, maptype='CHAINING', loadfactor=2)
+    catalog["artistAlbumTracks"] = mp.newMap(numelements=57000, maptype='CHAINING', loadfactor=0.5)
+    
+    # catalog["tracksArtistMarketHash"] = mp.newMap(
+    #     numelements=4500000, maptype='CHAINING', loadfactor=2)
+    # catalog["albumsArtistHash"] = mp.newMap(
+    #     numelements=57000, maptype='CHAINING', loadfactor=2)
 
     return catalog
 
@@ -66,11 +75,17 @@ def addArtist(catalog, artist):
     artist = newArtist(id, track_id, artist_popularity,
                        genres, name, followers)
 
+    # Add Artist to List
     artists = catalog["artists"]
     lt.addLast(artists, artist)
 
+    # Add Artist to Hash by Id
     artistsHash = catalog["artistsHash"]
     mp.put(artistsHash, artist["id"], artist)
+
+    # Add Artist to Hash by Name
+    artistsNameHash = catalog["artistsNameHash"]
+    mp.put(artistsNameHash, artist["name"], artist["id"])
 
     return catalog
 
@@ -110,11 +125,17 @@ def addAlbum(catalog, album):
     album = newAlbum(id, track_id, total_tracks, external_urls, album_type,
                      available_markets, artist_id, images, release_date, name, release_date_precision)
 
+    # Add Album to List
     albums = catalog["albums"]
     lt.addLast(albums, album)
 
+    # Add Album to Hash by Id
     albumsHash = catalog["albumsHash"]
     mp.put(albumsHash, album["id"], album)
+
+    # Add Album to Hash by Artist Id
+    # albumsArtistHash = catalog["albumsArtistHash"]
+    # mp.put(albumsArtistHash, album["artist_id"], album)
 
     return catalog
 
@@ -152,11 +173,30 @@ def addTrack(catalog, track):
     track = newTrack(id, href, album_id, key, track_number, artists_id, energy, loudness, valence, danceability, playlist, speechiness,
                      popularity, liveness, tempo, duration_ms, acousticness, available_markets, lyrics, disc_number, instrumentalness, preview_url, name)
 
+    # Add Track to List
     tracks = catalog["tracks"]
     lt.addLast(tracks, track)
 
+    # Add Track to Hash by Id
     tracksHash = catalog["tracksHash"]
     mp.put(tracksHash, track["id"], track)
+
+    # Add Track to Hash by ArtistId and Market
+    artists_id = track["artists_id"]
+    available_markets = track["available_markets"]
+    # tracksArtistMarketHash = catalog["tracksArtistMarketHash"]
+    # for artist_id in artists_id:
+    #     for market in available_markets:
+    #         key = artist_id + "-" + market
+
+    #         if mp.contains(tracksArtistMarketHash, key):
+    #             tracks = getValueMap(tracksArtistMarketHash, key)
+
+    #         else:
+    #             mp.put(tracksArtistMarketHash, key, lt.newList("ARRAY_LIST"))
+    #             tracks = getValueMap(tracksArtistMarketHash, key)
+
+    #         lt.addLast(tracks, track)
 
     return catalog
 

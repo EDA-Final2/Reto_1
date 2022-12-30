@@ -2,6 +2,7 @@
 import config as cf
 import sys
 import controller
+import pycountry
 from DISClib.ADT import list as lt
 assert cf
 
@@ -25,6 +26,7 @@ def printMenu():
     print("2- Albumes en un periodo de tiempo")
     print("3- Top de Artistas por Popularidad")
     print("4- Top de Canciones por Popularidad")
+    print("5- Canción más popular Artista en Mercado")
 
 # Functions to show answers
 
@@ -296,8 +298,18 @@ def printTopTracks(catalog, top_tracks, n):
     if top_tracks_size > 0:
         top_tracks_df = pd.DataFrame(first_last_tracks)[
             ["name", "album_name", "artists_name", "popularity", "duration_ms"]]
-        # [            ["name", "artist_popularity", "followers", "track_name", "genres"]]
         print(top_tracks_df.to_markdown(index=False))
+
+
+def printPopularSongArtistMarket(catalog, tracks, artist_name, country_name):
+
+    popular_track = controller.getElement(tracks, 1)
+
+    print(
+        f"\n'{artist_name}' most popular song in '{country_name}'\n")
+
+    pop_track_df = pd.DataFrame(popular_track)
+    print(popular_track)
 
 
 catalog = controller.newCatalog()
@@ -353,6 +365,38 @@ while True:
         top_tracks = controller.getTopTracks(catalog, n)
 
         printTopTracks(catalog, top_tracks, n)
+
+    elif int(inputs[0]) == 5:
+        print("\nReq 4.\nMost Popular Track of an Artist on a Market\n"+"-"*20)
+
+        artist_name = input("Artist Name: ")
+        country_name = input("Country Name: ")
+
+        artistsNameHash = catalog["artistsNameHash"]
+        artist_id = controller.getValueMap(artistsNameHash, artist_name)
+        if artist_id == "Not Found":
+            artist_name = "Selena Gomez"
+            artist_id = controller.getValueMap(artistsNameHash, artist_name)
+
+        artistsHash = catalog["artistsHash"]
+        artist = controller.getValueMap(artistsHash, artist_id)
+
+        try:
+            country_code = pycountry.countries.search_fuzzy(country_name)[
+                0].alpha_2
+        except:
+            country_code = pycountry.countries.search_fuzzy("United States")[
+                0].alpha_2
+
+        # if artist != "Not Found":
+        #     artist_id = artist["id"]
+
+        #     key = artist_id + "-" + country_code
+        #     tracksArtistMarketHash = catalog["tracksArtistMarketHash"]
+        #     tracks = controller.getValueMap(tracksArtistMarketHash, key)
+
+        #     if tracks != "Not Found":
+        #         sorted_tracks = controller.sortArtistTracksByPopularity(tracks)
 
     else:
         print("\nSaliendo de la Aplicación")

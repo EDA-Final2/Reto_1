@@ -44,7 +44,7 @@ def loadArtists(catalog):
     """
     Load the Artists in the file
     """
-    filename = cf.data_dir + "Spotify/spotify-artists-utf8-" + "large.csv"
+    filename = cf.data_dir + "Spotify/spotify-artists-utf8-" + "small.csv"
     file = csv.DictReader(open(filename, encoding="utf-8"))
 
     for artist in file:
@@ -56,7 +56,7 @@ def loadAlbums(catalog):
     """
     Load the Albums in the file
     """
-    filename = cf.data_dir + "Spotify/spotify-albums-utf8-" + "large.csv"
+    filename = cf.data_dir + "Spotify/spotify-albums-utf8-" + "small.csv"
     file = csv.DictReader(open(filename, encoding="utf-8"))
 
     for album in file:
@@ -68,7 +68,7 @@ def loadTracks(catalog):
     """
     Load the Tracks in the file
     """
-    filename = cf.data_dir + "Spotify/spotify-tracks-utf8-" + "large.csv"
+    filename = cf.data_dir + "Spotify/spotify-tracks-utf8-" + "small.csv"
     file = csv.DictReader(open(filename, encoding="utf-8"))
 
     for track in file:
@@ -102,10 +102,20 @@ def sortTracksByPopularity(catalog):
     tracks_sorted = model.sortTracksByPopularity(tracks)
     catalog["tracksSorted"] = tracks_sorted
 
+
+def sortArtistTracksByPopularity(tracks):
+    """
+    Sort  the Tracks
+    """
+    tracks_sorted = model.sortTracksByPopularity(tracks)
+
+    return tracks_sorted
+
+
 # Funciones de ordenamiento
 
-# Funciones de consulta sobre el catálogo
 
+# Funciones de consulta sobre el catálogo
 
 def getSize(list):
     """
